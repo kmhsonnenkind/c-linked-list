@@ -1,0 +1,40 @@
+buildType:
+    default: debug
+    description: Build type
+    choices:
+        debug:
+            short: Debug
+            long: Build with debug information and optimization disabled
+            buildType: Debug
+        release:
+            short: Release
+            long: Build without debug information and optimization enabled
+            buildType: Release
+
+coverage:
+  default: no-coverage
+  choices:
+    coverage:
+      short: w/ code coverage
+      long: Measure code coverage of unittests
+      settings:
+        CODE_COVERAGE: ON
+    no-python:
+      short: wo/ code coverage
+      long: Do not measure code coverage of unittests
+      settings:
+        CODE_COVERAGE: OFF
+
+documentation:
+  default: no-documentation
+  choices:
+    documentation:
+      short: w/ documentation
+      long: Build API documentation using doxygen
+      settings:
+        BUILD_DOCUMENTATION: ON
+    no-documentation:
+      short: wo/ documentation
+      long: Do not build API documentation
+      settings:
+        BUILD_DOCUMENTATION: OFF
