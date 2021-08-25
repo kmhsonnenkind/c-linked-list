@@ -34,7 +34,7 @@
 #define LINKEDLIST_H_
 
 #include <stddef.h>
-#include <pthread.h>
+#include "linkedlist-mutex.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -145,7 +145,7 @@ typedef struct
     /**
      * \brief Lock for thread-safe access to members.
      */
-    pthread_mutex_t _lock;
+    linkedlist_mutex_t _lock;
 } LinkedList;
 
 /**

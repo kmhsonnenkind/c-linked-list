@@ -47,22 +47,29 @@ if(BUILD_TESTING AND CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang"
 else()
   set(_CODE_COVERAGE 0)
 endif()
+if(WIN32 OR MSVC)
+  set(_MUTEX_IMPLEMENTATION src/win32-mutex.c)
+elseif(UNIX)
+  set(_MUTEX_IMPLEMENTATION src/pthread-mutex.c)
+else()
+  message(FATAL_ERROR "No mutex implementation available for platform")
+endif()
 
 
 ################################################################################
 # Libraries
 ################################################################################
-# Main C library
-add_library(linkedlist include/linkedlist.h src/linkedlist.c)
+# Main linked list library
+add_library(linkedlist include/linkedlist.h include/linkedlist-mutex.h src/linkedlist.c ${_MUTEX_IMPLEMENTATION})
 add_library(kmhsonnenkind::linkedlist ALIAS linkedlist)
 target_include_directories(linkedlist
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 
-# Special version of C library for measuring code coverage
+# Special version of linked list library for measuring code coverage
 if(_CODE_COVERAGE)
-  add_library(linkedlist-coverage include/linkedlist.h src/linkedlist.c)
+  add_library(linkedlist-coverage include/linkedlist.h src/linkedlist.c ${_MUTEX_IMPLEMENTATION})
   target_include_directories(linkedlist-coverage
     PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -81,6 +88,7 @@ endif()
 ################################################################################
 add_executable(linkedlist-example-int examples/linkedlist-example-int.c)
 target_link_libraries(linkedlist-example-int PRIVATE kmhsonnenkind::linkedlist)
+
 add_executable(linkedlist-example-custom examples/linkedlist-example-custom.c)
 target_link_libraries(linkedlist-example-custom PRIVATE kmhsonnenkind::linkedlist)
 
@@ -91,14 +99,17 @@ target_link_libraries(linkedlist-example-custom PRIVATE kmhsonnenkind::linkedlis
 include(CTest)
 if(BUILD_TESTING)
   # Catch2 tests for native C library
-  add_executable(linkedlist-tests tests/linkedlist-tests-main.cpp tests/linkedlist-tests.cpp)
+  add_executable(linkedlist-tests tests/linkedlist-tests-main.cpp tests/linkedlist-tests.cpp tests/linkedlist-mutex-tests.cpp)
   target_include_directories(linkedlist-tests PRIVATE tests)
-  if (_CODE_COVERAGE)
+  if(_CODE_COVERAGE)
     target_link_libraries(linkedlist-tests PRIVATE linkedlist-coverage)
   else()
     target_link_libraries(linkedlist-tests PRIVATE linkedlist)
   endif()
   add_test(NAME linkedlist-tests COMMAND linkedlist-tests)
+
+  # Custom ctest overrides
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/CTestCustom.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake)
 endif()
 
 
@@ -130,6 +141,7 @@ if(BUILD_DOCUMENTATION)
       ${CMAKE_CURRENT_BINARY_DIR}/docs/html/index.html)
 endif()
 
+
 ################################################################################
 # Installation
 ################################################################################
@@ -156,7 +168,7 @@ install(
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(
-  FILES include/linkedlist.h
+  FILES include/linkedlist.h include/linkedlist-mutex.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # CMake files for find_package()

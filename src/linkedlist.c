@@ -32,6 +32,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "linkedlist.h"
+#include "linkedlist-mutex.h"
 
 /**
  * \brief Initializes LinkedList for usage.
@@ -65,8 +66,8 @@ int linkedlist_initialize(LinkedList *list, size_t item_size,
     }
 
     // Prepare lock for thread-safe access
-    int status = pthread_mutex_init(&list->_lock, NULL);
-    if (status != 0)
+    int status = linkedlist_mutex_initialize(&list->_lock);
+    if (status != LINKEDLIST_MUTEX_SUCCESS)
     {
         return status; // LCOV_EXCL_LINE
     }
@@ -141,8 +142,8 @@ int linkedlist_add(LinkedList *list, void *value)
     list->_copy(item->_value, value, list->_item_size);
 
     // Update linked list
-    int status = pthread_mutex_lock(&list->_lock);
-    if (status != 0)
+    int status = linkedlist_mutex_lock(&list->_lock);
+    if (status != LINKEDLIST_MUTEX_SUCCESS)
     {
         // LCOV_EXCL_START
         if (list->_dealloc != NULL)
@@ -169,7 +170,7 @@ int linkedlist_add(LinkedList *list, void *value)
         }
         current->_next = item;
     }
-    pthread_mutex_unlock(&list->_lock);
+    linkedlist_mutex_unlock(&list->_lock);
 
     return LINKEDLIST_SUCCESS;
 }
@@ -196,8 +197,8 @@ int linkedlist_remove(LinkedList *list, unsigned int index)
     }
 
     // Find item to be removed
-    int status = pthread_mutex_lock(&list->_lock);
-    if (status != 0)
+    int status = linkedlist_mutex_lock(&list->_lock);
+    if (status != LINKEDLIST_MUTEX_SUCCESS)
     {
         return status; // LCOV_EXCL_LINE
     }
@@ -224,7 +225,7 @@ int linkedlist_remove(LinkedList *list, unsigned int index)
         {
             // Find position to remove item from
             ListItem *current = list->_head;
-            for (int _ = 0; _ < (index - 1); _++)
+            for (unsigned int _ = 0; _ < (index - 1); _++)
             {
                 // End of list reached early
                 if (current == NULL)
@@ -247,7 +248,7 @@ int linkedlist_remove(LinkedList *list, unsigned int index)
             status = LINKEDLIST_SUCCESS;
         }
     } while (0);
-    pthread_mutex_unlock(&list->_lock);
+    linkedlist_mutex_unlock(&list->_lock);
 
     // Actually free item
     if (to_be_freed != NULL)
@@ -297,8 +298,8 @@ int linkedlist_get(LinkedList *list, unsigned int index, void *buffer)
     }
 
     // Search item in list
-    int status = pthread_mutex_lock(&list->_lock);
-    if (status != 0)
+    int status = linkedlist_mutex_lock(&list->_lock);
+    if (status != LINKEDLIST_MUTEX_SUCCESS)
     {
         return status; // LCOV_EXCL_LINE
     }
@@ -315,14 +316,14 @@ int linkedlist_get(LinkedList *list, unsigned int index, void *buffer)
     // Item not found
     if (item == NULL)
     {
-        pthread_mutex_unlock(&list->_lock);
+        linkedlist_mutex_unlock(&list->_lock);
         return ERANGE;
     }
 
     // Copy item to output
     list->_copy(buffer, item->_value, list->_item_size);
 
-    pthread_mutex_unlock(&list->_lock);
+    linkedlist_mutex_unlock(&list->_lock);
     return LINKEDLIST_SUCCESS;
 }
 
@@ -356,8 +357,8 @@ int linkedlist_update(LinkedList *list, unsigned int index, void *value)
     }
 
     // Search item in list
-    int status = pthread_mutex_lock(&list->_lock);
-    if (status != 0)
+    int status = linkedlist_mutex_lock(&list->_lock);
+    if (status != LINKEDLIST_MUTEX_SUCCESS)
     {
         return status; // LCOV_EXCL_LINE
     }
@@ -392,7 +393,7 @@ int linkedlist_update(LinkedList *list, unsigned int index, void *value)
         status = LINKEDLIST_SUCCESS;
     } while (0);
 
-    pthread_mutex_unlock(&list->_lock);
+    linkedlist_mutex_unlock(&list->_lock);
     return status;
 }
 
@@ -421,8 +422,8 @@ int linkedlist_length(LinkedList *list, size_t *length_buffer)
     }
 
     // Iterate through all elements to get length
-    int status = pthread_mutex_lock(&list->_lock);
-    if (status != 0)
+    int status = linkedlist_mutex_lock(&list->_lock);
+    if (status != LINKEDLIST_MUTEX_SUCCESS)
     {
         return status; // LCOV_EXCL_LINE
     }
@@ -433,7 +434,7 @@ int linkedlist_length(LinkedList *list, size_t *length_buffer)
         *length_buffer += 1;
         current = current->_next;
     }
-    pthread_mutex_unlock(&list->_lock);
+    linkedlist_mutex_unlock(&list->_lock);
 
     return LINKEDLIST_SUCCESS;
 }
@@ -465,7 +466,7 @@ void linkedlist_destroy(LinkedList *list)
         }
 
         // Destroy lock
-        pthread_mutex_destroy(&list->_lock);
+        linkedlist_mutex_destroy(&list->_lock);
 
         // Invalidate list
         list->_head = NULL;

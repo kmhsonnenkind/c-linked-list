@@ -4,8 +4,6 @@
 
 This project offers a generic thread-safe linked list implementation in `C99`.
 
-It uses [pthread_mutex_t](https://man7.org/linux/man-pages/man7/pthreads.7.html) objects for thread-safety.
-
 
 ## Examples
 
@@ -48,11 +46,11 @@ As mentioned the build uses `cmake` so you will need the `cmake` binaries as wel
 
 The code uses `C99` features so make sure your compiler supports it (all the big ones do).
 For the unittests you will also need a compiler supporting `C++11`.
-The code was tested using [gcc-9](https://gcc.gnu.org/) and [clang-10](https://clang.llvm.org/).
+The code was tested using [gcc-9](https://gcc.gnu.org/), [clang-10](https://clang.llvm.org/) and [msvc-19](https://visualstudio.microsoft.com/de/vs/features/cplusplus/).
 
 If you want to build the full API documentation you will additionally need [doxygen]().
 
-For additional test features and static code analysis you might also want to install [lcov](http://ltp.sourceforge.net/coverage/lcov.php) and [cppcheck](http://cppcheck.sourceforge.net/).
+For additional test features and static code analysis you might also want to install [lcov](http://ltp.sourceforge.net/coverage/lcov.php), [cppcheck](http://cppcheck.sourceforge.net/) and [iwyu](https://include-what-you-use.org/).
 
 On `Debian` based systems you can install the required packages using:
 
@@ -69,10 +67,23 @@ sudo apt-get install build-essential \
 sudo apt-get install doxygen \
                      graphviz \
                      lcov \
-                     cppcheck
+                     cppcheck \
+                     iwyu
 ```
 
 All tools should also provide installers for your targeted operating system so just follow the instructions on the tools' websites.
+
+#### Supported Operating Systems
+ 
+The code tries to be as platform-independent as possible but needs to rely on native mutex objects for thread-safety.
+To do so during configuration your system will be checked and the corresponding implementation chosen accordingly.
+
+Currently the following implementations are available:
+
+* [pthread_mutex_t](https://man7.org/linux/man-pages/man7/pthreads.7.html) for systems supporting POSIX mutexes (Linux, BSD, MacOS).
+* [win32 CreateMutex()](https://docs.microsoft.com/en-us/windows/win32/sync/using-mutex-objects) for Windows system.
+
+If your operating system supports neither an error message will be displayed and you will not be able build the library.
 
 ### Build
 
@@ -103,6 +114,18 @@ This will install:
 
 For other ways to integrate the code in your project see the corresponding [section](#use-in-own-projects) below.
 
+#### Special Case: Windows
+
+Windows does not have a standard location for user libraries and will therefore not know where to put the code. You can override the install location manually using the `CMAKE_INSTALL_PREFIX` parameter.
+
+```sh
+# In build directory, with code built as described above
+cmake -DCMAKE_INSTALL_PREFIX="%APPDATA%/cmake" ..
+cmake --build . --target install
+```
+
+This will put all files under the given directory (*%APPDATA%/cmake/include*, *%APPDATA%/cmake/lib*) and you will need to make sure your compiler / toolchain picks up the data from there.
+
 ### Tests and Checks
 
 The code is unittested using [ctest](https://cmake.org/cmake/help/latest/manual/ctest.1.html) and [catch2](https://github.com/catchorg/Catch2) (provided in [tests/catch2](tests/catch2/catch.hpp)). As with any `ctest` project, the option to build the unittests can be enabled using the `BUILD_TESTING` cmake parameter (enabled by default).
@@ -126,6 +149,8 @@ ctest -T memcheck .
 
 If you want to get detailed information about the code coverage, you can turn on the cmake option `CODE_COVERAGE` (this requires `BUILD_TESTING` to be enabled as well). If enabled a special library (`linkedlist-coverage`) will be built from the same source code as the main library. This version has the appropriate compiler flags set to enable coverage measurements. The unittests will then use this version and provide coverage information after execution.
 To avoid issues during later use, the main library will be built as usual as well.
+
+**Note:** Coverage measurements are only available with `gcc` or `clang`. If using another compiler the `linkedlist-coverage` library will simply be skipped.
 
 To analyze the coverage data you can use [lcov](http://ltp.sourceforge.net/coverage/lcov.php) after running the unittests.
 
@@ -205,6 +230,12 @@ cmake_minimum_required(VERSION 3.12)
 project(example)
 
 find_project(linkedlist REQUIRED)
+```
+
+Special care has to be taken in Windows to patch the `CMAKE_PREFIX_PATH` to match the directory mentioned [above](#special-case-windows).
+
+```sh
+cmake -DCMAKE_PREFIX_PATH="%APPDATA%/cmake/lib" .
 ```
 
 Either way you can then link the `linkedlist` library using the `target_link_libraries()` command.

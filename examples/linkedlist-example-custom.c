@@ -35,6 +35,15 @@
 #include <assert.h>
 #include "linkedlist.h"
 
+/**
+ * \brief Custom macro for cross-platform unused parameters.
+ */
+#ifdef _MSC_VER
+#define PARAMETER_UNUSED(param) param
+#else
+#define PARAMETER_UNUSED(param) __attribute__((unused)) param
+#endif
+
 /** \struct ByteBuffer
  * \brief Custom data structure for a variable length byte buffer.
  */
@@ -60,7 +69,7 @@ typedef struct
  * \return void* \p dest pointer, \c NULL in case of error.
  */
 static void *bytebuffer_copy(void *dest, const void *src,
-                             __attribute__((unused)) size_t n)
+                             PARAMETER_UNUSED(size_t n))
 {
     // Validate parameters
     if ((dest == NULL) || (src == NULL))
@@ -154,7 +163,14 @@ static char *bytebuffer_to_string(ByteBuffer *buffer)
     FORMAT_BUFFER[0] = '[';
     for (size_t i = 0; i < buffer->length; i++)
     {
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#endif
         sprintf(1 + FORMAT_BUFFER + i * (4 + 1), "0x%02X,", buffer->data[i]);
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
     }
     FORMAT_BUFFER[string_length - 1 - 1] = ']';
     FORMAT_BUFFER[string_length - 1] = '\x00';
