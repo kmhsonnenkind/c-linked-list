@@ -64,6 +64,15 @@ jobs:
           cxx: cl
           generator: Visual Studio 16 2019
 
+        - name: Clang (MacOS)
+          os: macos-latest
+          coverage: false
+          documentation: false
+          memcheck: false
+          cc: clang
+          cxx: clang++
+          generator: Ninja
+
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -83,6 +92,10 @@ jobs:
         shell: cmd
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars32.bat"
+      - name: install dependencies (Clang (MacOS))
+        if: ${{ matrix.config.name == 'Clang (MacOS)' }}
+        run: |
+          brew install ninja
 
       - name: configure
         run: |
