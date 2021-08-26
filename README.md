@@ -1,5 +1,9 @@
 # C Generic Thread-Safe Linked List Implementation
 
+[![GitHub](https://img.shields.io/github/license/kmhsonnenkind/c-linked-list)](https://github.com/kmhsonnenkind/c-linked-list/blob/main/LICENSE)
+[![Build](https://github.com/kmhsonnenkind/c-linked-list/actions/workflows/build.yml/badge.svg)](https://github.com/kmhsonnenkind/c-linked-list/actions/workflows/build.yml)
+[![Codecov](https://codecov.io/gh/kmhsonnenkind/c-linked-list/branch/main/graph/badge.svg?token=5LNZWPDGI2)](https://codecov.io/gh/kmhsonnenkind/c-linked-list)
+
 ## About
 
 This project offers a generic thread-safe linked list implementation in `C99`.
@@ -74,7 +78,7 @@ sudo apt-get install doxygen \
 All tools should also provide installers for your targeted operating system so just follow the instructions on the tools' websites.
 
 #### Supported Operating Systems
- 
+
 The code tries to be as platform-independent as possible but needs to rely on native mutex objects for thread-safety.
 To do so during configuration your system will be checked and the corresponding implementation chosen accordingly.
 
