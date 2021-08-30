@@ -1,7 +1,7 @@
 # C Generic Thread-Safe Linked List Implementation
 
 [![GitHub](https://img.shields.io/github/license/kmhsonnenkind/c-linked-list)](https://github.com/kmhsonnenkind/c-linked-list/blob/main/LICENSE)
-[![Build](https://github.com/kmhsonnenkind/c-linked-list/actions/workflows/build.yml/badge.svg)](https://github.com/kmhsonnenkind/c-linked-list/actions/workflows/build.yml)
+[![Build](https://github.com/kmhsonnenkind/c-linked-list/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/kmhsonnenkind/c-linked-list/actions/workflows/build.yml)
 [![Codecov](https://codecov.io/gh/kmhsonnenkind/c-linked-list/branch/main/graph/badge.svg?token=5LNZWPDGI2)](https://codecov.io/gh/kmhsonnenkind/c-linked-list)
 
 ## About
